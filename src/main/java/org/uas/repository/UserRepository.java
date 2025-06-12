@@ -35,26 +35,75 @@ public class UserRepository {
 
     public List<User> findAll() {
         ArrayList<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM users";
+
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                String email = rs.getString("email");
+                String username = rs.getString("username");
+                String password = rs.getString("password");
+                users.add(new User(email, username, password));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching users: " + e.getMessage());
+        }
 
         return users;
     }
 
+
     public boolean authenticateUser(String username, String password) {
-        return false;
+        String query = "SELECT * FROM users WHERE username = ? AND password = ?";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, username);
+            ps.setString(2, password);
+            ResultSet rs = ps.executeQuery();
+            return rs.next(); // Jika ada hasil, berarti user valid
+        } catch (SQLException e) {
+            System.out.println("Authentication failed: " + e.getMessage());
+            return false;
+        }
     }
+
 
     public boolean insertUser(String email, String username, String password) {
-
-        return false;
-
+        String query = "INSERT INTO users (email, username, password) VALUES (?, ?, ?)";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, email);
+            ps.setString(2, username);
+            ps.setString(3, password);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("Insert failed: " + e.getMessage());
+            return false;
+        }
     }
+
 
     public boolean updateUser(String email, String username, String password) {
-        return false;
+        String query = "UPDATE users SET username = ?, password = ? WHERE email = ?";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, username);
+            ps.setString(2, password);
+            ps.setString(3, email);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("Update failed: " + e.getMessage());
+            return false;
+        }
     }
 
+
     public boolean deleteUser(String email) {
-        return false;
+        String query = "DELETE FROM users WHERE email = ?";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, email);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("Delete failed: " + e.getMessage());
+            return false;
+        }
     }
 }
 
